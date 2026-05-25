@@ -11,9 +11,9 @@ public interface MuldmsRepository
         extends JpaRepository<ShTvEvl, String> {
 
     @Query(value = """
-            SELECT buying_num
-            FROM muldms.sh_tv_evl
-            WHERE buying_num IN (:buyingIds)
+            SELECT "BUYING_NUM"
+            FROM "MULDMS"."SH_TV_EVAL"
+            WHERE "BUYING_NUM" IN (:buyingIds)
             """, nativeQuery = true)
     List<String> findExistingBuyingIds(
             @Param("buyingIds") List<String> buyingIds

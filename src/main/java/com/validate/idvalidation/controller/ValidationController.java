@@ -17,7 +17,7 @@ public class ValidationController {
     @PostMapping("/upload")
     public ResponseEntity<ValidationResponseDto> uploadCsv(
 
-            @RequestParam("file")
+            @RequestPart("file")
             MultipartFile file,
 
             @RequestParam(defaultValue = "0")

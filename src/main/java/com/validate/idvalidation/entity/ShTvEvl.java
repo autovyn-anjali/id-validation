@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "sh_tv_evl", schema = "muldms")
+@Table(name = "sh_tv_eval", schema = "muldms")
 @Getter
 @Setter
 public class ShTvEvl {
