@@ -33,6 +33,13 @@ public class ValidationController {
             HttpServletResponse response
     ) {
 
+        if (download) {
+
+            validationService.downloadValidatedCsv(file, response);
+
+            return null;
+        }
+
         ValidationResponseDto responseDto = validationService.validateCsv(file , page , size );
 
         return ResponseEntity.ok(responseDto);
