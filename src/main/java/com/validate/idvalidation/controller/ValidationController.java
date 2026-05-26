@@ -2,6 +2,7 @@ package com.validate.idvalidation.controller;
 
 import com.validate.idvalidation.dto.ValidationResponseDto;
 import com.validate.idvalidation.service.ValidationService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ public class ValidationController {
     private final ValidationService validationService;
 
     @PostMapping("/upload")
-    public ResponseEntity<ValidationResponseDto> uploadCsv(
+    public ResponseEntity<?> uploadCsv(
 
             @RequestPart("file")
             MultipartFile file,
@@ -24,11 +25,16 @@ public class ValidationController {
             int page,
 
             @RequestParam(defaultValue = "10")
-            int size
+            int size,
+
+            @RequestParam(defaultValue = "false")
+            boolean download,
+
+            HttpServletResponse response
     ) {
 
-        ValidationResponseDto response = validationService.validateCsv(file , page , size );
+        ValidationResponseDto responseDto = validationService.validateCsv(file , page , size );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(responseDto);
     }
 }

@@ -9,9 +9,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.servlet.http.HttpServletResponse;
+
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -140,6 +143,87 @@ public class ValidationService {
             );
         }
     }
+
+    public void downloadValidatedCsv(
+            MultipartFile file,
+            HttpServletResponse response
+    ) {
+
+        try {
+
+            List<String> buyingIds = readBuyingIds(file);
+
+            List<String> existingInSource =
+                    muldmsRepository.findExistingBuyingIds(buyingIds);
+
+            Set<String> sourceSet =
+                    new HashSet<>(existingInSource);
+
+            List<BuyingMasterTest> targetData =
+                    buyingMasterTestRepository.findByBuyingIdIn(existingInSource);
+
+            Map<String, String> targetMap = targetData.stream()
+                    .filter(data -> data.getBuyingId() != null)
+                    .collect(Collectors.toMap(
+                            BuyingMasterTest::getBuyingId,
+                            data -> data.getMspin() != null
+                                    ? data.getMspin()
+                                    : "",
+                            (existing, replacement) -> existing
+                    ));
+
+            response.setContentType("text/csv");
+
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=validated_output.csv"
+            );
+
+            CSVPrinter csvPrinter = new CSVPrinter(
+                    response.getWriter(),
+                    CSVFormat.DEFAULT
+            );
+
+            csvPrinter.printRecord(
+                    "buyingId",
+                    "existsInSource",
+                    "existsInTarget",
+                    "mspin"
+            );
+
+            for (String buyingId : buyingIds) {
+
+                boolean existsInSource =
+                        sourceSet.contains(buyingId);
+
+                boolean existsInTarget =
+                        existsInSource &&
+                                targetMap.containsKey(buyingId);
+
+                String mspin =
+                        existsInTarget
+                                ? targetMap.get(buyingId)
+                                : "";
+
+                csvPrinter.printRecord(
+                        buyingId,
+                        existsInSource,
+                        existsInTarget,
+                        mspin
+                );
+            }
+
+            csvPrinter.flush();
+
+        } catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to generate CSV",
+                    e
+            );
+        }
+    }
+
 
     private List<String> readBuyingIds(MultipartFile file) {
         try {
